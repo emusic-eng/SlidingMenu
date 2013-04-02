@@ -16,3 +16,4 @@ gen
 *.project
 /library/build
 /local.properties
+/library/local.properties
