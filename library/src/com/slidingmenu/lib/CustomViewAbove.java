@@ -13,7 +13,6 @@ import android.support.v4.view.VelocityTrackerCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewConfigurationCompat;
 import android.util.AttributeSet;
-import android.util.FloatMath;
 import android.util.Log;
 import android.view.FocusFinder;
 import android.view.KeyEvent;
@@ -101,6 +100,8 @@ public class CustomViewAbove extends ViewGroup {
 
 	//	private int mScrollState = SCROLL_STATE_IDLE;
 
+	private boolean dispatchEndScroll;
+	
 	/**
 	 * Callback interface for responding to changing state of the selected page.
 	 */
@@ -124,6 +125,8 @@ public class CustomViewAbove extends ViewGroup {
 		 * @param position Position index of the new selected page.
 		 */
 		public void onPageSelected(int position);
+		
+		public void onPageEndedScroll();
 
 	}
 
@@ -146,6 +149,9 @@ public class CustomViewAbove extends ViewGroup {
 			// This space for rent
 		}
 
+		public void onPageEndedScroll() {
+			// This space for rent
+		}
 	}
 
 	public CustomViewAbove(Context context) {
@@ -217,6 +223,7 @@ public class CustomViewAbove extends ViewGroup {
 	}
 
 	void setCurrentItemInternal(int item, boolean smoothScroll, boolean always, int velocity) {
+		dispatchEndScroll = false;
 		if (!always && mCurItem == item) {
 			setScrollingCacheEnabled(false);
 			return;
@@ -228,6 +235,7 @@ public class CustomViewAbove extends ViewGroup {
 		mCurItem = item;
 		final int destX = getDestScrollX(mCurItem);
 		if (dispatchSelected && mOnPageChangeListener != null) {
+			dispatchEndScroll = true;
 			mOnPageChangeListener.onPageSelected(item);
 		}
 		if (dispatchSelected && mInternalPageChangeListener != null) {
@@ -300,7 +308,7 @@ public class CustomViewAbove extends ViewGroup {
 	float distanceInfluenceForSnapDuration(float f) {
 		f -= 0.5f; // center the values about 0.
 		f *= 0.3f * Math.PI / 2.0f;
-		return (float) FloatMath.sin(f);
+		return (float) Math.sin(f);
 	}
 
 	public int getDestScrollX(int page) {
@@ -560,6 +568,12 @@ public class CustomViewAbove extends ViewGroup {
 			}
 		}
 		mScrolling = false;
+		
+		if (dispatchEndScroll && mOnPageChangeListener != null) {
+			mOnPageChangeListener.onPageEndedScroll();
+		}
+		dispatchEndScroll = false;
+		mViewBehind.setDontDrawFade(false);
 	}
 
 	protected int mTouchMode = SlidingMenu.TOUCHMODE_MARGIN;
@@ -1008,4 +1022,12 @@ public class CustomViewAbove extends ViewGroup {
 		return false;
 	}
 
+	/**
+	 * Checks if is the behind view showing.
+	 *
+	 * @return Whether or not the behind view is showing
+	 */
+	boolean isMenuShowing() {
+		return getCurrentItem() == 0 || getCurrentItem() == 2;
+	}
 }
