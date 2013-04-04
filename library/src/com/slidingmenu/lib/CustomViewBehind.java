@@ -54,6 +54,10 @@ public class CustomViewBehind extends ViewGroup {
 		requestLayout();
 	}
 
+	public int getWidthOffset() {
+		return mWidthOffset;
+	}
+	
 	public int getBehindWidth() {
 		return mContent.getWidth();
 	}
@@ -123,6 +127,11 @@ public class CustomViewBehind extends ViewGroup {
 		mContent.layout(0, 0, width-mWidthOffset, height);
 		if (mSecondaryContent != null)
 			mSecondaryContent.layout(0, 0, width-mWidthOffset, height);
+
+		if (isMenuShowing()) {
+			dontDrawFade = true;
+			mViewAbove.setCurrentItemInternal(mViewAbove.getCurrentItem(), true, true);
+		}
 	}
 
 	@Override
@@ -139,6 +148,7 @@ public class CustomViewBehind extends ViewGroup {
 
 	private int mMode;
 	private boolean mFadeEnabled;
+	private boolean dontDrawFade;
 	private final Paint mFadePaint = new Paint();
 	private float mScrollScale;
 	private Drawable mShadowDrawable;
@@ -352,7 +362,7 @@ public class CustomViewBehind extends ViewGroup {
 	}
 
 	public void drawFade(View content, Canvas canvas, float openPercent) {
-		if (!mFadeEnabled) return;
+		if (!mFadeEnabled || dontDrawFade) return;
 		final int alpha = (int) (mFadeDegree * 255 * Math.abs(1-openPercent));
 		mFadePaint.setColor(Color.argb(alpha, 0, 0, 0));
 		int left = 0;
@@ -428,4 +438,16 @@ public class CustomViewBehind extends ViewGroup {
 		refreshDrawableState();
 	}
 
+	/**
+	 * Checks if is the behind view showing.
+	 *
+	 * @return Whether or not the behind view is showing
+	 */
+	boolean isMenuShowing() {
+		return mViewAbove.isMenuShowing();
+	}
+	
+	void setDontDrawFade(boolean set) {
+		dontDrawFade = set;
+	}
 }

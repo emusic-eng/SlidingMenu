@@ -197,11 +197,14 @@ public class SlidingMenu extends RelativeLayout {
 	 * @param attrs the attrs
 	 * @param defStyle the def style
 	 */
+	@SuppressWarnings("deprecation")
 	public SlidingMenu(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		
 		LayoutParams behindParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
 		mViewBehind = new CustomViewBehind(context);
+		mViewBehind.setBackgroundDrawable(getBackground());
+		setBackgroundDrawable(null);
 		addView(mViewBehind, behindParams);
 		LayoutParams aboveParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
 		mViewAbove = new CustomViewAbove(context);
@@ -221,6 +224,13 @@ public class SlidingMenu extends RelativeLayout {
 					mOpenListener.onOpen();
 				} else if (position == POSITION_CLOSE && mCloseListener != null) {
 					mCloseListener.onClose();
+				}
+			}
+
+			@Override
+			public void onPageEndedScroll() {
+				if (!isMenuShowing()) {
+					onMenuHidden();
 				}
 			}
 		});
@@ -548,7 +558,7 @@ public class SlidingMenu extends RelativeLayout {
 	 * @return Whether or not the behind view is showing
 	 */
 	public boolean isMenuShowing() {
-		return mViewAbove.getCurrentItem() == 0 || mViewAbove.getCurrentItem() == 2;
+		return mViewAbove.isMenuShowing();
 	}
 	
 	/**
@@ -580,9 +590,12 @@ public class SlidingMenu extends RelativeLayout {
 		//		int top = params.topMargin;
 		//		int left = params.leftMargin;
 		//		params.setMargins(left, top, i, bottom);
-		mViewBehind.setWidthOffset(i);
+		int curOffset = mViewBehind.getWidthOffset();
+		if (i != curOffset) {
+			mViewBehind.setWidthOffset(i);
+		}
 	}
-
+	
 	/**
 	 * Sets the behind offset.
 	 *
@@ -989,4 +1002,6 @@ public class SlidingMenu extends RelativeLayout {
 		}
 	}
 
+	protected void onMenuHidden() {
+	}
 }
